@@ -1,8 +1,10 @@
 library(tidyverse)
 library(ggplot2)
 
+file_path <- ""
+
 odi_data <- list.files(
-  path = "C:/Users/thevi/Downloads/odis_male_csv2/",
+  path = file_path,
   pattern = ".*[^_info]\\.csv",
   full.names = TRUE
 ) %>%
@@ -25,7 +27,7 @@ sr_prog <- sl %>%
   summarise(sr = mean(sr))
 
 sr_prog %>%
-  write.csv("C:/Users/thevi/Desktop/sr_prog.csv")
+  write.csv("./sr_prog.csv")
 
 sr_prog %>%
   filter(striker != "M Theekshana") %>%
