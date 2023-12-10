@@ -1,7 +1,9 @@
 library(tidyverse)
 
+file_path <- ""
+
 odi_data <- list.files(
-  path = "../Downloads/odis_male_csv2/",
+  path = file_path,
   pattern = ".*[^_info]\\.csv",
   full.names = TRUE
 ) %>%
@@ -52,4 +54,4 @@ entry_point <- wickets %>%
   )) %>%
   filter(role < 12) %>%
   filter(batting_team %in% teams) %>%
-  write.csv("../Desktop/entry_points.csv")
+  write.csv("./entry_points.csv")
