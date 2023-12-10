@@ -3,7 +3,9 @@ library(ggplot2)
 
 # Match no: 1395700 first 5 overs missing
 
-odi_data <- read.csv(file = "C:/Users/thevi/Downloads/odi_bbb.csv") %>%
+file_path <- ""
+
+odi_data <- read.csv(file = file_path) %>%
   mutate(date = as.Date(date, format = "%Y-%m-%d"))
 
 since2019 <- odi_data %>%
