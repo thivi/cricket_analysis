@@ -1,8 +1,9 @@
 library(tidyverse)
 library(ggplot2)
 
+file_path <- ""
 odi_data <- list.files(
-  path = "C:/Users/thevi/Downloads/odis_nov/",
+  path = file_path,
   pattern = ".*[^_info]\\.csv",
   full.names = TRUE
 ) %>%
@@ -11,7 +12,7 @@ odi_data <- list.files(
 
 find_position <- function(id, pteam, pplayer) {
   pos <- read.csv(
-    paste("C:/Users/thevi/Downloads/odis_nov/", id, "_info.csv", sep = ""),
+    paste(file_path, id, "_info.csv", sep = ""),
     header = FALSE,
     col.names = c("type", "type1", "team", "player", "id")
   ) %>%
@@ -49,7 +50,7 @@ asalanka_final <- asalanka %>%
     "Entry Over" = paste(entry_over, entry_over + 5, sep = "-"),
     entry_over = NULL
   ) %>%
-  write.csv("C:/Users/thevi/Desktop/asalanka.csv")
+  write.csv("./asalanka.csv")
 
 as <- asalanka %>%
   filter(entry_over >= 25 & bowling_team != "United Arab Emirates")
