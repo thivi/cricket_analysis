@@ -20,7 +20,6 @@ sadeera_wc <- wc2023 %>%
 
 # Entry point
 entry_point <- sadeera %>%
-  filter(wide == 0 & byes == 0 & legbyes == 0) %>%
   arrange(p_match, ball_id) %>%
   group_by(p_match) %>%
   summarise(
@@ -29,9 +28,9 @@ entry_point <- sadeera %>%
     date = head(date, 1), position = head(inns_wkts, 1) + 2,
     spin = sum(ifelse(bowl_kind == "spin bowler", 1, 0)),
     pace = sum(ifelse(bowl_kind == "pace bowler", 1, 0)),
-    runs = sum(score),
+    runs = sum(batruns),
     outs = sum(ifelse(out == "True" & dismissal != "run out", 1, 0)),
-    balls = n()
+    balls = sum(ballfaced)
   ) %>%
   mutate(
     spin_p = spin / (spin + pace) * 100,
@@ -42,6 +41,7 @@ entry_point <- sadeera %>%
 entry_point_sum <- entry_point %>%
   group_by(entry_over) %>%
   summarise(
+    inns = n(),
     avg = sum(runs) / (sum(ifelse(outs == 1, 1, 0))),
     spin = sum(spin) / sum(balls) * 100,
     pace = sum(pace) / sum(balls) * 100,
@@ -51,75 +51,124 @@ entry_point_sum <- entry_point %>%
 entry_point_5 <- entry_point %>%
   filter(entry_over <= 5) %>%
   summarise(
+    inns = n(),
+    balls = sum(balls),
     avg = sum(runs) / (sum(ifelse(outs == 1, 1, 0))),
     spin = sum(spin) / sum(balls) * 100,
     pace = sum(pace) / sum(balls) * 100,
     sr = sum(runs) / sum(balls) * 100
-  )
+  ) %>%
+  mutate(overs = "0-5")
 
 entry_point_10 <- entry_point %>%
   filter(entry_over <= 10 & entry_over > 5) %>%
   summarise(
+    inns = n(),
+    balls = sum(balls),
     avg = sum(runs) / (sum(ifelse(outs == 1, 1, 0))),
     spin = sum(spin) / sum(balls) * 100,
     pace = sum(pace) / sum(balls) * 100,
     sr = sum(runs) / sum(balls) * 100
-  )
+  ) %>%
+  mutate(overs = "6-10")
 
 entry_point_15 <- entry_point %>%
   filter(entry_over <= 15 & entry_over > 10) %>%
   summarise(
+    inns = n(),
+    balls = sum(balls),
     avg = sum(runs) / (sum(ifelse(outs == 1, 1, 0))),
     spin = sum(spin) / sum(balls) * 100,
     pace = sum(pace) / sum(balls) * 100,
     sr = sum(runs) / sum(balls) * 100
-  )
+  ) %>%
+  mutate(overs = "11-15")
+
+entry_point_15_20 <- entry_point %>%
+  filter(entry_over <= 20 & entry_over > 15) %>%
+  summarise(
+    inns = n(),
+    balls = sum(balls),
+    avg = sum(runs) / (sum(ifelse(outs == 1, 1, 0))),
+    spin = sum(spin) / sum(balls) * 100,
+    pace = sum(pace) / sum(balls) * 100,
+    sr = sum(runs) / sum(balls) * 100
+  ) %>%
+  mutate(overs = "16-20")
+
+entry_point_20_25 <- entry_point %>%
+  filter(entry_over <= 25 & entry_over > 20) %>%
+  summarise(
+    inns = n(),
+    balls = sum(balls),
+    avg = sum(runs) / (sum(ifelse(outs == 1, 1, 0))),
+    spin = sum(spin) / sum(balls) * 100,
+    pace = sum(pace) / sum(balls) * 100,
+    sr = sum(runs) / sum(balls) * 100
+  ) %>%
+  mutate(overs = "21-25")
+
+entry_point_25_30 <- entry_point %>%
+  filter(entry_over <= 30 & entry_over > 25) %>%
+  summarise(
+    inns = n(),
+    balls = sum(balls),
+    avg = sum(runs) / (sum(ifelse(outs == 1, 1, 0))),
+    spin = sum(spin) / sum(balls) * 100,
+    pace = sum(pace) / sum(balls) * 100,
+    sr = sum(runs) / sum(balls) * 100
+  ) %>%
+  mutate(overs = "26-30")
+
+entry_point_35_40 <- entry_point %>%
+  filter(entry_over <= 40 & entry_over > 35) %>%
+  summarise(
+    inns = n(),
+    balls = sum(balls),
+    avg = sum(runs) / (sum(ifelse(outs == 1, 1, 0))),
+    spin = sum(spin) / sum(balls) * 100,
+    pace = sum(pace) / sum(balls) * 100,
+    sr = sum(runs) / sum(balls) * 100
+  ) %>%
+  mutate(overs = "36-40")
+
+entry_points_aggregate <- rbind(
+  entry_point_5,
+  entry_point_10,
+  entry_point_15,
+  entry_point_15_20,
+  entry_point_20_25,
+  entry_point_25_30,
+  entry_point_35_40
+)
+
+write.csv(entry_points_aggregate,
+  file = "./sadeera/entry_points_aggregate.csv"
+)
 
 entry_point_15_50 <- entry_point %>%
   filter(entry_over <= 50 & entry_over > 15) %>%
   summarise(
+    inns = n(),
     avg = sum(runs) / (sum(ifelse(outs == 1, 1, 0))),
     spin = sum(spin) / sum(balls) * 100,
     pace = sum(pace) / sum(balls) * 100,
     sr = sum(runs) / sum(balls) * 100
   )
-
-pak <- sadeera %>%
-  filter(wide == 0 & byes == 0 & legbyes == 0) %>%
-  filter(p_match == 1384399 & bowl_kind == "pace bowler") %>%
-  group_by(bowl_kind) %>%
-  summarise(runs = sum(score), balls = n(), sr = sum(score) / n() * 100)
-
-ban <- sadeera %>%
-  filter(wide == 0 & byes == 0 & legbyes == 0) %>%
-  filter(p_match == 1388403 & bowl_kind == "pace bowler") %>%
-  group_by(bowl_kind) %>%
-  summarise(runs = sum(score), balls = n(), sr = sum(score) / n() * 100)
-
-ban_bowl <- sadeera %>%
-  filter(wide == 0 & byes == 0 & legbyes == 0) %>%
-  filter(p_match == 1388403 & bowl_kind == "pace bowler") %>%
-  group_by(p_bowl, bowl) %>%
-  summarise(runs = sum(score), balls = n(), sr = sum(score) / n() * 100)
 
 mean_position <- mean(entry_point$entry_over)
 median_position <- median(entry_point$entry_over)
 
 # Spin vs pace
-sadeera_runs <- sadeera %>%
-  filter(wide == 0 & byes == 0 & legbyes == 0)
-
-sadeera_wc_runs <- sadeera_wc %>%
-  filter(wide == 0 & byes == 0 & legbyes == 0)
 
 summarize_data <- function(p_data) {
-  total_runs <- sum(data$score)
-  total_balls <- length(data$score)
+  total_runs <- sum(p_data$batruns)
+  total_balls <- sum(p_data$ballfaced)
   dismissals <- p_data %>%
     filter(out == "True" & dismissal != "run out") %>%
     nrow()
   dots <- p_data %>%
-    filter(score == 0) %>%
+    filter(batruns == 0) %>%
     nrow()
   fours <- p_data %>%
     filter(outcome == "four") %>%
@@ -131,43 +180,43 @@ summarize_data <- function(p_data) {
   nbr <- total_runs - (4 * fours) + (6 * sixes)
   data_summary <- data.frame(
     metric = c(
-      "avg",
-      "sr",
+      "Runs",
+      "Balls",
+      "Dismissals",
+      "Average",
+      "Strike rate",
       "4s",
       "6s",
-      "dot%",
-      "NBSR",
-      "balls",
-      "runs",
-      "outs"
+      "Dot percentage",
+      "NBSR"
     ),
     value = c(
-      total_balls / dismissals,
+      total_runs,
+      total_balls,
+      dismissals,
+      total_runs / dismissals,
       total_runs / total_balls * 100,
       fours,
       sixes,
       dots / total_balls * 100,
-      nbr / nbb * 100,
-      total_balls,
-      total_runs,
-      dismissals
+      nbr / nbb * 100
     )
   )
 
   return(data_summary)
 }
 
-spin <- sadeera_runs %>%
+spin <- sadeera %>%
   filter(bowl_kind == "spin bowler")
 
 spin_summary <- summarize_data(spin)
 
-pace <- sadeera_runs %>%
+pace <- sadeera %>%
   filter(bowl_kind == "pace bowler")
 
 pace_summary <- summarize_data(pace)
 
-spin_wc <- sadeera_wc_runs %>%
+spin_wc <- sadeera_wc %>%
   filter(bowl_kind == "spin bowler")
 
 spin_summary_wc <- summarize_data(spin_wc)
@@ -192,27 +241,103 @@ ob_wc <- spin_wc %>%
 
 ob_wc_sum <- summarize_data(ob_wc)
 
-pace_wc <- sadeera_wc_runs %>%
+spin_breakdown <- full_join(lb_wc_sum, sla_wc_sum, by = "metric") %>%
+  rename(
+    lb = value.x,
+    sla = value.y
+  ) %>%
+  full_join(ob_wc_sum, by = "metric") %>%
+  rename(
+    ob = value
+  )
+
+write.csv(spin_breakdown,
+  file = "./sadeera/spin_breakdown.csv"
+)
+
+pace_wc <- sadeera_wc %>%
   filter(bowl_kind == "pace bowler")
 
 pace_summary_wc <- summarize_data(pace_wc)
 
-sadeera_0_15_data <- sadeera_runs %>%
+scoring_breakdown <- full_join(pace_summary_wc, pace_summary, by = "metric") %>%
+  rename(
+    pace_wc = value.x,
+    pace = value.y
+  ) %>%
+  full_join(spin_summary_wc, by = "metric") %>%
+  rename(
+    spin_wc = value
+  ) %>%
+  full_join(spin_summary, by = "metric") %>%
+  rename(
+    spin = value
+  )
+
+write.csv(scoring_breakdown,
+  file = "./sadeera/scoring_breakdown.csv"
+)
+sadeera_0_15_data <- sadeera %>%
   filter(over < 15)
 
 sadeera_0_15 <- summarize_data(sadeera_0_15_data)
 
-sadeera_15_37_data <- sadeera_runs %>%
+sadeera_15_37_data <- sadeera %>%
   filter(over >= 15 & over <= 37)
 sadeera_15_37 <- summarize_data(sadeera_15_37_data)
 
-sadeera_37_50_data <- sadeera_runs %>%
+sadeera_37_50_data <- sadeera %>%
   filter(over > 37)
 sadeera_37 <- summarize_data(sadeera_37_50_data)
 
+sadeera_phase_breakdown <- full_join(
+  sadeera_0_15,
+  sadeera_15_37,
+  by = "metric"
+) %>%
+  rename(
+    sadeera_0_15 = value.x,
+    sadeera_15_37 = value.y
+  ) %>%
+  full_join(sadeera_37, by = "metric") %>%
+  rename(
+    sadeera_37 = value
+  )
+
+write.csv(sadeera_phase_breakdown,
+  file = "./sadeera/sadeera_phase_breakdown.csv"
+)
+
 by_teams <- sadeera_37_50_data %>%
   group_by(team_bowl) %>%
-  summarise(runs = sum(score), balls = n())
+  summarise(runs = sum(batruns), balls = sum(ballfaced))
+
+pak <- sadeera_37_50_data %>%
+  filter(p_match == 1384399 & bowl_kind == "pace bowler") %>%
+  group_by(bowl_kind) %>%
+  summarise(
+    runs = sum(batruns),
+    balls = sum(ballfaced),
+    sr = sum(batruns) / sum(ballfaced) * 100
+  )
+
+ban <- sadeera_37_50_data %>%
+  filter(p_match == 1388403 & bowl_kind == "pace bowler") %>%
+  group_by(bowl_kind) %>%
+  summarise(
+    runs = sum(batruns),
+    balls = sum(ballfaced),
+    sr = sum(batruns) / sum(ballfaced) * 100
+  )
+
+ban_bowl <- sadeera_37_50_data %>%
+  filter(p_match == 1388403 & bowl_kind == "pace bowler") %>%
+  group_by(p_bowl, bowl) %>%
+  summarise(
+    runs = sum(batruns),
+    balls = sum(ballfaced),
+    sr = sum(batruns) / sum(ballfaced) * 100
+  )
 
 sadeera_15_balls <- (sadeera_0_15 %>% filter(metric == "balls"))$value
 
@@ -255,7 +380,17 @@ teams <- c(
 )
 
 t_entry_top <- t_entry %>%
-  filter(team_bat %in% teams)
+  filter(team_bat %in% teams) %>%
+  filter(role != 12) %>%
+  rename(
+    "Batting team" = team_bat, team_bat,
+    "Role" = role,
+    "Entry over" = entry_point
+  )
+
+write.csv(t_entry_top,
+  file = "./sadeera/t_entry_top.csv"
+)
 
 avg_entry <- t_entry_top %>%
   group_by(role) %>%
@@ -273,3 +408,12 @@ avg_entry_top <- t_entry %>%
   filter(team_bat %in% teams_top) %>%
   group_by(role) %>%
   summarise(entry_point_avg = mean(entry_point), median = median(entry_point))
+
+sadeera_spin_pace <- sadeera %>%
+  group_by(bowl_kind) %>%
+  summarise(
+    balls = sum(ballfaced)
+  ) %>%
+  mutate(
+    percent = balls / sum(balls) * 100
+  )
