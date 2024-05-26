@@ -7,122 +7,134 @@ Original file is located at
     https://colab.research.google.com/drive/1SvjkOOy3pHVweej4MRSqz9GJMMCPLSiB
 """
 
+import sys
 import threading
 from time import sleep
 import requests
 import re
 import json
 
-def getSchedule(id):
-  resp = requests.get(f"https://ipl-stats-sports-mechanic.s3.ap-south-1.amazonaws.com/ipl/feeds/{id}-matchschedule.js?MatchSchedule=_jqjsp&_1716223606780=")
-  resp = str(resp.content)
-  matchArray = re.findall("MatchSchedule\({\"Matchsummary\"\s?:(.*)}\);", resp)[0]
-  sanitizedArray = re.sub("\"PreMatchCommentary\":.*?\"MatchRow\"", "\"MatchRow\"", matchArray)
-  matches = json.loads(sanitizedArray)
+argYear = sys.argv[1]
 
-  return matches
+
+def getSchedule(id):
+    resp = requests.get(
+        f"https://ipl-stats-sports-mechanic.s3.ap-south-1.amazonaws.com/ipl/feeds/{id}-matchschedule.js?MatchSchedule=_jqjsp&_1716223606780="
+    )
+    resp = str(resp.content)
+    matchArray = re.findall('MatchSchedule\({"Matchsummary"\s?:(.*)}\);', resp)[0]
+    sanitizedArray = re.sub(
+        '"PreMatchCommentary":.*?"MatchRow"', '"MatchRow"', matchArray
+    )
+    matches = json.loads(sanitizedArray)
+
+    return matches
+
 
 def getMatchURL(year, id):
-  return f"https://www.iplt20.com/match/{year}/{id}"
+    return f"https://www.iplt20.com/match/{year}/{id}"
+
 
 def getBbbID(year, id):
-  resp = requests.get(getMatchURL(year, id))
-  bbbURL = re.findall("https:\/\/polls\.iplt20\.com\/\?entity_matchId=.*?\"", str(resp.content))
-  bbbID = 0
-  if len(bbbURL) > 0:
-    bbbID = re.findall(";matchId=(.*?)&", bbbURL[0])[0]
+    resp = requests.get(getMatchURL(str(year).strip(), str(id).strip()))
+    bbbURL = re.findall(
+        'https:\/\/polls\.iplt20\.com\/\?entity_matchId=.*?"', str(resp.content)
+    )
+    bbbID = 0
+    if len(bbbURL) > 0:
+        bbbID = re.findall(";matchId=(.*?)&", bbbURL[0])[0]
 
-  return int(bbbID)
+    return int(bbbID)
+
 
 def getBalls(id, inns):
-  resp = requests.get(f"https://ipl-stats-sports-mechanic.s3.ap-south-1.amazonaws.com/ipl/feeds/{id}-Innings{inns}.js")
-  balls = re.findall("onScoring\({\"Innings"+str(inns)+"\"\s?:(.*)}\);", str(resp.content))
+    resp = requests.get(
+        f"https://ipl-stats-sports-mechanic.s3.ap-south-1.amazonaws.com/ipl/feeds/{id}-Innings{inns}.js"
+    )
+    balls = re.findall(
+        'onScoring\({"Innings' + str(inns) + '"\s?:(.*)}\);', str(resp.content)
+    )
 
-  if len(balls) == 0:
-    return []
+    if len(balls) == 0:
+        return []
 
-  sanitizedBalls = re.sub("\"CommentStrikers\".*?\"Day\"", "\"Day\"", balls[0])
+    sanitizedBalls = re.sub('"CommentStrikers".*?"Day"', '"Day"', balls[0])
 
-  return json.loads(sanitizedBalls)["OverHistory"]
+    return json.loads(sanitizedBalls)["OverHistory"]
+
 
 def getBallsByMatch(id):
-  balls = []
-  balls.extend(getBalls(id, 1))
-  balls.extend(getBalls(id, 2))
+    balls = []
+    balls.extend(getBalls(id, 1))
+    balls.extend(getBalls(id, 2))
 
-  return balls
+    return balls
+
 
 def getBBB(inns, over, ball, id):
-  bbbURL = f"https://polls.iplt20.com/widget/welcome/get_data?path=Delivery_{inns}_{over}_{ball}_{id}.json"
+    bbbURL = f"https://polls.iplt20.com/widget/welcome/get_data?path=Delivery_{inns}_{over}_{ball}_{id}.json"
 
-  resp = requests.get(bbbURL)
-  data = re.findall("b\'(.*)\'", str(resp.content))[0]
-  sanitizedData = re.sub(",\"trajectoryData\".*?}", "}", data)
+    resp = requests.get(bbbURL)
+    data = re.findall("b'(.*)'", str(resp.content))[0]
+    sanitizedData = re.sub(',"trajectoryData".*?}', "}", data)
 
-  bbb = json.loads(sanitizedData)
+    bbb = json.loads(sanitizedData)
 
-  if bbb is None:
-    return []
+    if bbb is None:
+        return []
 
-  return [
-    bbb["match"]["battingTeam"]["name"],
-    bbb["match"]["battingTeam"]["batsman"]["id"],
-    bbb["match"]["battingTeam"]["batsman"]["name"],
-    bbb["match"]["battingTeam"]["batsman"]["isRightHanded"],
-    bbb["match"]["battingTeam"]["batsmanPartner"]["id"],
-    bbb["match"]["battingTeam"]["batsmanPartner"]["name"],
-    bbb["match"]["battingTeam"]["batsmanPartner"]["isRightHanded"],
-    bbb["match"]["bowlingTeam"]["name"],
-    bbb["match"]["bowlingTeam"]["bowler"]["id"],
-    bbb["match"]["bowlingTeam"]["bowler"]["name"],
-    bbb["match"]["bowlingTeam"]["bowler"]["isRightHanded"],
-    bbb["match"]["delivery"]["deliveryType"],
-    bbb["match"]["delivery"]["deliveryNumber"]["innings"],
-    bbb["match"]["delivery"]["deliveryNumber"]["ball"],
-    bbb["match"]["delivery"]["deliveryNumber"]["over"],
-    bbb["match"]["delivery"]["shotInformation"]["shotAttacked"],
-    bbb["match"]["delivery"]["shotInformation"]["shotPlayed"],
-    bbb["match"]["delivery"]["shotInformation"]["shotTypeAdditional"],
-    bbb["match"]["delivery"]["trajectory"]["bounceAboveStumps"],
-    bbb["match"]["delivery"]["trajectory"]["bounceAngle"],
-    bbb["match"]["delivery"]["trajectory"]["bouncePosition"]["x"],
-    bbb["match"]["delivery"]["trajectory"]["bouncePosition"]["y"],
-    bbb["match"]["delivery"]["trajectory"]["bouncePosition"]["z"],
-    bbb["match"]["delivery"]["trajectory"]["creasePosition"]["x"],
-    bbb["match"]["delivery"]["trajectory"]["creasePosition"]["y"],
-    bbb["match"]["delivery"]["trajectory"]["creasePosition"]["z"],
-    bbb["match"]["delivery"]["trajectory"]["deviation"],
-    bbb["match"]["delivery"]["trajectory"]["dropAngle"],
-    bbb["match"]["delivery"]["trajectory"]["hitStumps"],
-    bbb["match"]["delivery"]["trajectory"]["impactPosition"]["x"],
-    bbb["match"]["delivery"]["trajectory"]["impactPosition"]["y"],
-    bbb["match"]["delivery"]["trajectory"]["impactPosition"]["z"],
-    bbb["match"]["delivery"]["trajectory"]["initialAngle"],
-    bbb["match"]["delivery"]["trajectory"]["landingPosition"]["x"],
-    bbb["match"]["delivery"]["trajectory"]["landingPosition"]["y"],
-    bbb["match"]["delivery"]["trajectory"]["landingPosition"]["z"],
-    bbb["match"]["delivery"]["trajectory"]["pbr"],
-    bbb["match"]["delivery"]["trajectory"]["reactionTime(to crease)"],
-    bbb["match"]["delivery"]["trajectory"]["reactionTime(to interception)"],
-    bbb["match"]["delivery"]["trajectory"]["realDistance"],
-    bbb["match"]["delivery"]["trajectory"]["releasePosition"]["x"],
-    bbb["match"]["delivery"]["trajectory"]["releasePosition"]["y"],
-    bbb["match"]["delivery"]["trajectory"]["releasePosition"]["z"],
-    bbb["match"]["delivery"]["trajectory"]["releaseSpeed"],
-    bbb["match"]["delivery"]["trajectory"]["spinRate"],
-    bbb["match"]["delivery"]["trajectory"]["stumpPosition"]["x"],
-    bbb["match"]["delivery"]["trajectory"]["stumpPosition"]["y"],
-    bbb["match"]["delivery"]["trajectory"]["stumpPosition"]["z"],
-    bbb["match"]["delivery"]["trajectory"]["swing"],
-  ]
+    return [
+        bbb["match"]["battingTeam"]["name"],
+        bbb["match"]["battingTeam"]["batsman"]["id"],
+        bbb["match"]["battingTeam"]["batsman"]["name"],
+        bbb["match"]["battingTeam"]["batsman"]["isRightHanded"],
+        bbb["match"]["battingTeam"]["batsmanPartner"]["id"],
+        bbb["match"]["battingTeam"]["batsmanPartner"]["name"],
+        bbb["match"]["battingTeam"]["batsmanPartner"]["isRightHanded"],
+        bbb["match"]["bowlingTeam"]["name"],
+        bbb["match"]["bowlingTeam"]["bowler"]["id"],
+        bbb["match"]["bowlingTeam"]["bowler"]["name"],
+        bbb["match"]["bowlingTeam"]["bowler"]["isRightHanded"],
+        bbb["match"]["delivery"]["deliveryType"],
+        bbb["match"]["delivery"]["deliveryNumber"]["innings"],
+        bbb["match"]["delivery"]["deliveryNumber"]["ball"],
+        bbb["match"]["delivery"]["deliveryNumber"]["over"],
+        bbb["match"]["delivery"]["shotInformation"]["shotAttacked"],
+        bbb["match"]["delivery"]["shotInformation"]["shotPlayed"],
+        bbb["match"]["delivery"]["shotInformation"]["shotTypeAdditional"],
+        bbb["match"]["delivery"]["trajectory"]["bounceAboveStumps"],
+        bbb["match"]["delivery"]["trajectory"]["bounceAngle"],
+        bbb["match"]["delivery"]["trajectory"]["bouncePosition"]["x"],
+        bbb["match"]["delivery"]["trajectory"]["bouncePosition"]["y"],
+        bbb["match"]["delivery"]["trajectory"]["bouncePosition"]["z"],
+        bbb["match"]["delivery"]["trajectory"]["creasePosition"]["x"],
+        bbb["match"]["delivery"]["trajectory"]["creasePosition"]["y"],
+        bbb["match"]["delivery"]["trajectory"]["creasePosition"]["z"],
+        bbb["match"]["delivery"]["trajectory"]["deviation"],
+        bbb["match"]["delivery"]["trajectory"]["dropAngle"],
+        bbb["match"]["delivery"]["trajectory"]["hitStumps"],
+        bbb["match"]["delivery"]["trajectory"]["impactPosition"]["x"],
+        bbb["match"]["delivery"]["trajectory"]["impactPosition"]["y"],
+        bbb["match"]["delivery"]["trajectory"]["impactPosition"]["z"],
+        bbb["match"]["delivery"]["trajectory"]["initialAngle"],
+        bbb["match"]["delivery"]["trajectory"]["landingPosition"]["x"],
+        bbb["match"]["delivery"]["trajectory"]["landingPosition"]["y"],
+        bbb["match"]["delivery"]["trajectory"]["landingPosition"]["z"],
+        bbb["match"]["delivery"]["trajectory"]["pbr"],
+        bbb["match"]["delivery"]["trajectory"]["reactionTime(to crease)"],
+        bbb["match"]["delivery"]["trajectory"]["reactionTime(to interception)"],
+        bbb["match"]["delivery"]["trajectory"]["realDistance"],
+        bbb["match"]["delivery"]["trajectory"]["releasePosition"]["x"],
+        bbb["match"]["delivery"]["trajectory"]["releasePosition"]["y"],
+        bbb["match"]["delivery"]["trajectory"]["releasePosition"]["z"],
+        bbb["match"]["delivery"]["trajectory"]["releaseSpeed"],
+        bbb["match"]["delivery"]["trajectory"]["spinRate"],
+        bbb["match"]["delivery"]["trajectory"]["stumpPosition"]["x"],
+        bbb["match"]["delivery"]["trajectory"]["stumpPosition"]["y"],
+        bbb["match"]["delivery"]["trajectory"]["stumpPosition"]["z"],
+        bbb["match"]["delivery"]["trajectory"]["swing"],
+    ]
 
-ipl2022 = 60
-ipl2023 = 107
-ipl2024 = 148
-
-matches = getSchedule(ipl2022)
-matches.extend(getSchedule(ipl2023))
-matches.extend(getSchedule(ipl2024))
 
 header = [
     "batting_team",
@@ -200,64 +212,98 @@ header = [
     "is_free_hit",
     "innings_no",
     "ground",
-    "date"
+    "date",
 ]
 
 lock = threading.Lock()
+
+
 def writeData(match, b, index, b_index, matches, balls):
-  bbb = getBBB(b["InningsNo"], b["OverNo"], b["BallNo"], getBbbID(2024, 1451))
-  bbb.extend([
-      b["MatchID"],
-      b["BallUniqueID"],
-      b["IsOne"],
-      b["IsTwo"],
-      b["IsThree"],
-      b["IsDotball"],
-      b["IsWide"],
-      b["IsNoBall"],
-      b["IsBye"],
-      b["IsLegBye"],
-      b["IsFour"],
-      b["IsSix"],
-      b["IsWicket"],
-      b["WicketType"],
-      b["IsBowlerWicket"],
-      b["BowlTypeName"],
-      b["ShotType"],
-      b["Xpitch"],
-      b["Ypitch"],
-      b["BOWLING_LINE_ID"] if "BOWLING_LINE_ID" in b else 0,
-      b["BOWLING_LENGTH_ID"] if "BOWLING_LENGTH_ID" in b else 0,
-      b["Runs"],
-      b["IsBouncer"],
-      b["IsFreeHit"],
-      b["InningsNo"],
-      match["GroundName"],
-      match["MatchDate"]
-  ])
+    year = match["MatchDate"].split("-"[0])
+    if "ActualBallNo" in b:
+      bbb = getBBB(
+          b["InningsNo"], b["OverNo"], b["ActualBallNo"], getBbbID(year, match["MatchID"])
+      )
+    else:
+        bbb = []
+    bB = bbb[2] if len(bbb) > 0 else ""
+    bat = b["BatsManName"] if "BatsManName" in b else ""
 
-  row = ""
-  for data in bbb:
-    row += str(data)+","
-  print(f"{index+1}/{len(matches)} - {b_index+1}/{len(balls)} done.")
+    if bB.lower() != bat.lower():
+        print(
+            f"{bB} - {bat}: {b['InningsNo']}, {b['OverNo']}, {b['ActualBallNo']}, {getBbbID(year, match['MatchID'])}, {b['MatchID']}"
+        )
+    bbb.extend(
+        [
+            b["MatchID"],
+            b["BallUniqueID"],
+            b["IsOne"],
+            b["IsTwo"],
+            b["IsThree"],
+            b["IsDotball"],
+            b["IsWide"],
+            b["IsNoBall"],
+            b["IsBye"],
+            b["IsLegBye"],
+            b["IsFour"],
+            b["IsSix"],
+            b["IsWicket"],
+            b["WicketType"],
+            b["IsBowlerWicket"],
+            b["BowlTypeName"],
+            b["ShotType"],
+            b["Xpitch"],
+            b["Ypitch"],
+            b["BOWLING_LINE_ID"] if "BOWLING_LINE_ID" in b else 0,
+            b["BOWLING_LENGTH_ID"] if "BOWLING_LENGTH_ID" in b else 0,
+            b["Runs"],
+            b["IsBouncer"],
+            b["IsFreeHit"],
+            b["InningsNo"],
+            match["GroundName"],
+            match["MatchDate"],
+        ]
+    )
 
-  with lock:
-    with open("data.csv", "a") as file:
-      file.write(f"{row}\n")
+    row = ""
+    for data in bbb:
+        row += str(data) + ","
+    print(f"{index+1}/{len(matches)} - {b_index+1}/{len(balls)} done.")
+
+    with lock:
+        with open(f"data{argYear}.csv", "a") as file:
+            file.write(f"{row}\n")
+
 
 def getData(matches):
-  with open("data.csv", "a") as file:
-    file.write(",".join(header)+"\n")
-  threads = []
-  for index, match in enumerate(matches):
-    balls = getBallsByMatch(match["MatchID"])
-    for b_index, b in enumerate(balls):
-      thread = threading.Thread(target=writeData, args=(match, b, index, b_index, matches, balls))
-      thread.start()
-      threads.append(thread)
-      sleep(0.2)
+    with open(f"data{argYear}.csv", "a") as file:
+        file.write(",".join(header) + "\n")
+    threads = []
+    for index, match in enumerate(matches):
+        balls = getBallsByMatch(match["MatchID"])
+        for b_index, b in enumerate(balls):
+            thread = threading.Thread(
+                target=writeData, args=(match, b, index, b_index, matches, balls)
+            )
+            thread.start()
+            threads.append(thread)
+            sleep(0.2)
 
-  for thread in threads:
-    thread.join()
+    for thread in threads:
+        thread.join()
+
+
+ipl2022 = 60
+ipl2023 = 107
+ipl2024 = 148
+
+matches = []
+
+if argYear == "2022":
+    matches = getSchedule(ipl2022)
+if argYear == "2023":
+    matches = getSchedule(ipl2023)
+if argYear == "2024":
+    matches = getSchedule(ipl2024)
 
 getData(matches)
