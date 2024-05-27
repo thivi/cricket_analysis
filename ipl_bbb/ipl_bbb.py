@@ -220,9 +220,10 @@ lock = threading.Lock()
 
 def writeData(match, b, index, b_index, matches, balls):
     year = match["MatchDate"].split("-"[0])
+    bbbID = getBbbID(year, match["MatchID"])
     if "ActualBallNo" in b:
       bbb = getBBB(
-          b["InningsNo"], b["OverNo"], b["ActualBallNo"], getBbbID(year, match["MatchID"])
+          b["InningsNo"], b["OverNo"], b["ActualBallNo"], bbbID
       )
     else:
         bbb = []
@@ -231,7 +232,7 @@ def writeData(match, b, index, b_index, matches, balls):
 
     if bB.lower() != bat.lower():
         print(
-            f"{bB} - {bat}: {b['InningsNo']}, {b['OverNo']}, {b['ActualBallNo']}, {getBbbID(year, match['MatchID'])}, {b['MatchID']}"
+            f"{bB} - {bat}: {b['InningsNo']}, {b['OverNo']}, {b['ActualBallNo'] if 'ActualBallNo' in b else 'None'}, {bbbID}, {b['MatchID']}"
         )
     bbb.extend(
         [
@@ -306,4 +307,4 @@ if argYear == "2023":
 if argYear == "2024":
     matches = getSchedule(ipl2024)
 
-getData(matches)
+getData(matches[72:74])
