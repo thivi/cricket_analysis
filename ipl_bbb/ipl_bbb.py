@@ -227,7 +227,13 @@ def writeData(match, b, index, b_index, matches, balls):
       )
     else:
         bbb = []
-    bB = bbb[2] if len(bbb) > 0 else ""
+        print(f"ActualBallNo not found for {b['MatchID']}")
+    if len(bbb) > 0:
+        bB = bbb[2]
+    else:
+        bB = ""
+        print(f"bbb not found for {b['MatchID']},  {b['InningsNo']}, {b['OverNo']}, {b['ActualBallNo'] if 'ActualBallNo' in b else 'None'} {bbbID}")
+
     bat = b["BatsManName"] if "BatsManName" in b else ""
 
     if bB.lower() != bat.lower():
