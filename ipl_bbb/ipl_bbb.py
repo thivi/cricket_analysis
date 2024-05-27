@@ -217,10 +217,17 @@ header = [
 
 lock = threading.Lock()
 
+matchBBBID = {}
 
 def writeData(match, b, index, b_index, matches, balls):
     year = match["MatchDate"].split("-"[0])
-    bbbID = getBbbID(year, match["MatchID"])
+
+    if match["MatchID"] in matchBBBID:
+        bbbID = matchBBBID[match["MatchID"]]
+    else:
+        bbbID = getBbbID(year, match["MatchID"])
+        matchBBBID[match["MatchID"]] = bbbID
+
     if "ActualBallNo" in b:
       bbb = getBBB(
           b["InningsNo"], b["OverNo"], b["ActualBallNo"], bbbID
@@ -243,7 +250,7 @@ def writeData(match, b, index, b_index, matches, balls):
     bbb.extend(
         [
             b["MatchID"],
-            b["BallUniqueID"],
+            b["BallUniqueID"] if "BallUniqueID" in b else 0,
             b["IsOne"],
             b["IsTwo"],
             b["IsThree"],
@@ -294,7 +301,7 @@ def getData(matches):
             )
             thread.start()
             threads.append(thread)
-            sleep(0.2)
+            sleep(0.5)
 
     for thread in threads:
         thread.join()
@@ -313,4 +320,4 @@ if argYear == "2023":
 if argYear == "2024":
     matches = getSchedule(ipl2024)
 
-getData(matches[72:74])
+getData(matches)
