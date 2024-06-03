@@ -310,3 +310,14 @@ mpNT  <-  mpNT  %>%
 fastSlot  <- fast  %>%
     group_by(length)  %>%
     summarise(rp_z = mean(stump_pos_z))
+
+mpFast  <-  mpNT  %>%
+    filter(is_slower == 0 & bowler_name == "MATHEESHA PATHIRANA")
+ggplot() +
+    geom_point(data = mpFast, aes(x=release_pos_z, y=swing, color=over)) +
+    labs(
+        title = "Release Point",
+        x = "Line",
+        y = "Length"
+    )
+cor(mpFast$release_pos_z, mpFast$swing)
