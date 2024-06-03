@@ -19,8 +19,11 @@ data <- read.csv("data.csv") %>%
     mutate(crease_pos_y = -1 * crease_pos_y) %>%
     mutate(release_pos_y = -1 * release_pos_y) %>%
     mutate(impact_pos_y = -1 * impact_pos_y) %>%
-    mutate(bounce_pos_y = -1 * bounce_pos_y)  %>%
-    mutate(phase = ifelse(over < 4, "PP1", ifelse(over < 7, "PP2", ifelse(over < 12, "Early Middle", ifelse(over < 17, "Late Middle", "Death")))))
+    mutate(bounce_pos_y = -1 * bounce_pos_y) %>%
+    mutate(phase = ifelse(over < 4, "PP1", ifelse(over < 7, "PP2", ifelse(over < 12, "Early Middle", ifelse(over < 17, "Late Middle", "Death"))))) %>%
+    separate(runs, c("runs", "extras"), sep = " ") %>%
+    mutate(bowler_runs = ifelse(is_leg_bye == TRUE | is_bye == TRUE, 0, ifelse(is_no_ball == TRUE, as.integer(runs) - 1, as.integer(runs))))
+
 
 data <- removeOutliers(data, "bounce_pos_x")
 data <- removeOutliers(data, "bounce_pos_y")
@@ -255,8 +258,14 @@ s  <- mp2024  %>%
     group_by(bowler_name)  %>%
     summarise(no = n(), swing = mean(swing))
 
+mpSlower <- mp %>%
+    filter(ball_type == "OFF CUTTER" | ball_type == "Knuckleball" | ball_type == "SLOWER BALL")
+
+maxSlowMP <- max(mpSlower$release_speed)
+mp <- mp %>%
+    mutate(is_slower = ifelse(release_speed < maxSlowMP, 1, 0))
 mpRPLength  <-  mp  %>%
-    group_by(length)  %>%
+    group_by(length, is_slower)  %>%
     summarise(rp_z = mean(release_pos_z), rp_y = mean(release_pos_y))
 
 mpRPLength2024 <-  mp2024  %>%
@@ -321,3 +330,21 @@ ggplot() +
         y = "Length"
     )
 cor(mpFast$release_pos_z, mpFast$swing)
+
+ggplot() +
+    geom_point(data = mp, aes(x = release_pos_z, y = initial_angle)) +
+    labs(
+        title = "Release Point",
+        x = "Line",
+        y = "Length"
+    )
+
+cor(mp$initial_angle, mp$stump_pos_z)
+
+mpia <- mp %>%
+    group_by(year, length) %>%
+    summarise(ia = mean(initial_angle))
+
+fia <- fast %>%
+    group_by(length) %>%
+    summarise(ia = mean(initial_angle))
