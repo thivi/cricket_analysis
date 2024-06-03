@@ -348,3 +348,13 @@ mpia <- mp %>%
 fia <- fast %>%
     group_by(length) %>%
     summarise(ia = mean(initial_angle))
+
+ggplot() +
+    geom_point(data = mp, aes(x = release_speed, y = swing)) +
+    labs(
+        title = "Release Point",
+        x = "Line",
+        y = "Length"
+    )
+
+cor(mp$release_speed, mp$swing)
