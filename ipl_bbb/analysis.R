@@ -22,9 +22,9 @@ data <- read.csv("data.csv") %>%
     mutate(bounce_pos_y = -1 * bounce_pos_y) %>%
     mutate(phase = ifelse(over < 4, "PP1", ifelse(over < 7, "PP2", ifelse(over < 12, "Early Middle", ifelse(over < 17, "Late Middle", "Death"))))) %>%
     separate(runs, c("runs", "extras"), sep = " ") %>%
-    mutate(bowler_runs = ifelse(is_leg_bye == TRUE | is_bye == TRUE, 0, ifelse(is_no_ball == TRUE, as.integer(runs) - 1, as.integer(runs))))  %>%
-    mutate(length = ifelse(bounce_pos_x < 0, "Full toss", ifelse(bounce_pos_x < 2, "Yorker", ifelse(bounce_pos_x < 6, "Slot", ifelse(bounce_pos_x < 8, "Good length", ifelse(bounce_pos_x < 10, "Short of a good length", ifelse(bounce_pos_x < 12, "Short", "Bouncer")))))))
-
+    mutate(bowler_runs = ifelse(is_leg_bye == TRUE | is_bye == TRUE, 0, ifelse(is_no_ball == TRUE, as.integer(runs) - 1, as.integer(runs)))) %>%
+    mutate(length = ifelse(bounce_pos_x < 0, "Full toss", ifelse(bounce_pos_x < 2, "Yorker", ifelse(bounce_pos_x < 4, "Slot", ifelse(bounce_pos_x < 6, "Full", ifelse(bounce_pos_x < 8, "Good length", ifelse(bounce_pos_x < 10, "Short of a good length", ifelse(bounce_pos_x < 12, "Short", "Bouncer")))))))) %>%
+    mutate(release_speed = release_speed * 1.61)
 
 data <- removeOutliers(data, "bounce_pos_x")
 data <- removeOutliers(data, "bounce_pos_y")
@@ -43,7 +43,6 @@ data <- removeOutliers(data, "deviation")
 data <- removeOutliers(data, "drop_angle")
 data <- removeOutliers(data, "bounce_angle")
 data <- removeOutliers(data, "swing")
-
 
 mp <- data %>%
     filter(bowler_name == "MATHEESHA PATHIRANA")
@@ -242,3 +241,214 @@ ntSwingRR <- sum(ntSwingingBalls$bowler_runs) / nrow(ntSwingingBalls)
 ntSwingLessRR <- sum(ntSwingLessBalls$bowler_runs) / nrow(ntSwingLessBalls)
 ntSwingSR  <- nrow(ntSwingingBalls) / nrow(ntSwingingBalls  %>% filter(is_bowler_wicket == TRUE))
 ntSwingLessSR  <- nrow(ntSwingLessBalls) / nrow(ntSwingLessBalls  %>% filter(is_bowler_wicket == TRUE))
+
+mpReleaseByLength  <- mp  %>%
+    group_by(length)  %>%
+    summarise(release_z = mean(release_pos_z), release_y = mean(release_pos_y))
+
+mpReleaseByLength2022  <- mp2022  %>%
+    group_by(length)  %>%
+    summarise(release_z = mean(release_pos_z), release_y = mean(release_pos_y))
+
+mpReleaseByLength2023  <- mp2023  %>%
+    group_by(length)  %>%
+    summarise(release_z = mean(release_pos_z), release_y = mean(release_pos_y))
+
+mpReleaseByLength2024  <-  mp2024  %>%
+    group_by(length)  %>%
+    summarise(release_z = mean(release_pos_z), release_y = mean(release_pos_y))
+
+ntReleaseByLength  <- nt  %>%
+    group_by(length)  %>%
+    summarise(release_z = mean(release_pos_z), release_y = mean(release_pos_y))
+
+mpYorkerSuccess <- nrow(mp %>% filter(length == "Yorker")) / nrow(mp %>% filter(length == "Yorker" | length == "Full toss" | length == "Slot")) * 100
+
+mpYorkerSuccess2022 <- nrow(mp2022 %>% filter(length == "Yorker")) / nrow(mp2022 %>% filter(length == "Yorker" | length == "Full toss" | length == "Slot")) * 100
+mpYorkerSuccess2023 <- nrow(mp2023 %>% filter(length == "Yorker")) / nrow(mp2023 %>% filter(length == "Yorker" | length == "Full toss" | length == "Slot")) * 100
+mpYorkerSuccess2024 <- nrow(mp2024 %>% filter(length == "Yorker")) / nrow(mp2024 %>% filter(length == "Yorker" | length == "Full toss" | length == "Slot")) * 100
+
+ntYorkerSuccess <- nrow(nt %>% filter(length == "Yorker")) / nrow(nt %>% filter(length == "Yorker" | length == "Full toss" | length == "Slot")) * 100
+
+avgYorkerSuccess <-nrow(fast %>% filter(length == "Yorker")) / nrow(fast %>% filter(length == "Yorker" | length == "Full toss" | length == "Slot")) * 100
+
+mpYorkerRR <- sum((mp %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))$bowler_runs) / nrow((mp %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss")))
+mpYorkerSR <- nrow((mp %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))) / nrow((mp %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss") %>% filter(is_bowler_wicket == TRUE)))
+
+mpYorkerRR2022 <- sum((mp2022 %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))$bowler_runs) / nrow((mp2022 %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss")))
+mpYorkerSR2022 <- nrow((mp2022 %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))) / nrow((mp2022 %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss") %>% filter(is_bowler_wicket == TRUE)))
+
+mpYorkerRR2023 <- sum((mp2023 %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))$bowler_runs) / nrow((mp2023 %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss")))
+mpYorkerSR2023 <- nrow((mp2023 %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))) / nrow((mp2023 %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss") %>% filter(is_bowler_wicket == TRUE)))
+
+mpYorkerRR2024 <- sum((mp2024 %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))$bowler_runs) / nrow((mp2024 %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss")))
+mpYorkerSR2024 <- nrow((mp2024 %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))) / nrow((mp2024 %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss") %>% filter(is_bowler_wicket == TRUE)))
+
+ntYorkerRR <- sum((nt %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))$bowler_runs) / nrow((nt %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss")))
+ntYorkerSR <- nrow((nt %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))) / nrow((nt %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss") %>% filter(is_bowler_wicket == TRUE)))
+
+mpWrongYorkerRR  <- sum((mp %>% filter(length == "Slot" | length == "Full toss"))$bowler_runs) / nrow((mp %>% filter(length == "Slot" | length == "Full toss")))
+mpWrongYorkerSR  <- nrow((mp %>% filter(length == "Slot" | length == "Full toss"))) / nrow((mp %>% filter(length == "Slot" | length == "Full toss") %>% filter(is_bowler_wicket == TRUE)))
+
+mpWrongYorkerRR2022 <- sum((mp2022 %>% filter(length == "Slot" | length == "Full toss"))$bowler_runs) / nrow((mp2022 %>% filter(length == "Slot" | length == "Full toss")))
+mpWrongYorkerSR2022 <- nrow((mp2022 %>% filter(length == "Slot" | length == "Full toss"))) / nrow((mp2022 %>% filter(length == "Slot" | length == "Full toss") %>% filter(is_bowler_wicket == TRUE)))
+
+mpWrongYorkerRR2023 <- sum((mp2023 %>% filter(length == "Slot" | length == "Full toss"))$bowler_runs) / nrow((mp2023 %>% filter(length == "Slot" | length == "Full toss")))
+mpWrongYorkerSR2023 <- nrow((mp2023 %>% filter(length == "Slot" | length == "Full toss"))) / nrow((mp2023 %>% filter(length == "Slot" | length == "Full toss") %>% filter(is_bowler_wicket == TRUE)))
+
+mpWrongYorkerRR2024 <- sum((mp2024 %>% filter(length == "Slot" | length == "Full toss"))$bowler_runs) / nrow((mp2024 %>% filter(length == "Slot" | length == "Full toss")))
+mpWrongYorkerSR2024 <- nrow((mp2024 %>% filter(length == "Slot" | length == "Full toss"))) / nrow((mp2024 %>% filter(length == "Slot" | length == "Full toss") %>% filter(is_bowler_wicket == TRUE)))
+
+ntWrongYorkerRR <- sum((nt %>% filter(length == "Slot" | length == "Full toss"))$bowler_runs) / nrow((nt %>% filter(length == "Slot" | length == "Full toss")))
+ntWrongYorkerSR <- nrow((nt %>% filter(length == "Slot" | length == "Full toss"))) / nrow((nt %>% filter(length == "Slot" | length == "Full toss") %>% filter(is_bowler_wicket == TRUE)))
+
+avgWrongYorkerRR <- sum((fast %>% filter(length == "Slot" | length == "Full toss"))$bowler_runs) / nrow((fast %>% filter(length == "Slot" | length == "Full toss")))
+avgWrongYorkerSR <- nrow((fast %>% filter(length == "Slot" | length == "Full toss"))) / nrow((fast %>% filter(length == "Slot" | length == "Full toss") %>% filter(is_bowler_wicket == TRUE)))
+
+avgYorkerRR <- sum((fast %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))$bowler_runs) / nrow((fast %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss")))
+avgYorkerSR <- nrow((fast %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))) / nrow((fast %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss") %>% filter(is_bowler_wicket == TRUE)))
+
+mpYorkerSpeed  <- mean((mp %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))$release_speed)
+mpYorkerSpeed2022 <- mean((mp2022 %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))$release_speed)
+mpYorkerSpeed2023 <- mean((mp2023 %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))$release_speed)
+mpYorkerSpeed2024 <- mean((mp2024 %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))$release_speed)
+ntYorkerSpeed  <- mean((nt %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))$release_speed)
+
+mpYorkerSwing <- mean((mp %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))$swing)
+mpYorkerSwing2022 <- mean((mp2022 %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))$swing)
+mpYorkerSwing2023 <- mean((mp2023 %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))$swing)
+mpYorkerSwing2024 <- mean((mp2024 %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))$swing)
+ntYorkerSwing <- mean(abs((nt %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))$swing))
+ntYorkerPPSwing <- mean((nt %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss" | phase == "PP1"))$swing)
+ntYorkerDeathSwing <- mean((nt %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss" | phase == "Death"))$swing)
+avgYorkerSwing  <-  mean((fast %>% filter(length == "Yorker" | length == "Slot" | length == "Full toss"))$swing)
+
+mpSlotBounce <- mean((mp %>% filter(length == "Slot"))$crease_pos_z)
+mpSlotBounce2022 <- mean((mp2022 %>% filter(length == "Slot"))$crease_pos_z)
+mpSlotBounce2023 <- mean((mp2023 %>% filter(length == "Slot"))$crease_pos_z)
+mpSlotBounce2024 <- mean((mp2024 %>% filter(length == "Slot"))$crease_pos_z)
+ntSlotBounce <- mean((nt %>% filter(length == "Slot"))$crease_pos_z)
+avgSlotBounce <- mean((fast %>% filter(length == "Slot"))$crease_pos_z)
+
+ntPhaseRR <- nt %>%
+    group_by(phase) %>%
+    summarise(RR = sum(bowler_runs) / n())
+
+mpPhaseRR <- mp %>%
+    group_by(phase) %>%
+    summarise(RR = sum(bowler_runs) / n())
+
+mpSlowBallDeviation  <- mean((mpNT %>% filter(is_slower == 1 & bowler_name == "MATHEESHA PATHIRANA"))$deviation)
+mpSlowBallDeviation2022 <- mean((mpNT %>% filter(is_slower == 1 & bowler_name == "MATHEESHA PATHIRANA" & year == "2022"))$deviation)
+mpSlowBallDeviation2023 <- mean((mpNT %>% filter(is_slower == 1 & bowler_name == "MATHEESHA PATHIRANA" & year == "2023"))$deviation)
+mpSlowBallDeviation2024 <- mean((mpNT %>% filter(is_slower == 1 & bowler_name == "MATHEESHA PATHIRANA" & year == "2024"))$deviation)
+ntSlowBallDeviation <- mean((mpNT %>% filter(is_slower == 1 & bowler_name == "NUWAN THUSHARA"))$deviation)
+
+ggplot() +
+    geom_point(data = nt, aes(x = release_speed, y = swing)) +
+    labs(
+        title = "Release Speed vs Swing",
+        x = "Release Speed",
+        y = "Swing"
+    )
+
+ggplot() +
+    geom_point(data = mp, aes(x = release_speed, y = swing)) +
+    labs(
+        title = "Release Speed vs Swing",
+        x = "Release Speed",
+        y = "Swing"
+    )
+
+ggplot() +
+    geom_point(data = mp2024, aes(x = release_speed, y = swing)) +
+    labs(
+        title = "Release Speed vs Swing",
+        x = "Release Speed",
+        y = "Swing"
+    )
+ggplot() +
+    geom_point(data = mp2023, aes(x = release_speed, y = swing)) +
+    labs(
+        title = "Release Speed vs Swing",
+        x = "Release Speed",
+        y = "Swing"
+    )
+ggplot() +
+    geom_point(data = mp2022, aes(x = release_speed, y = swing)) +
+    labs(
+        title = "Release Speed vs Swing",
+        x = "Release Speed",
+        y = "Swing"
+    )
+
+mpBounce <- mp %>%
+    group_by(length) %>%
+    summarise(bounce = mean(crease_pos_z))
+
+mpBounce2022 <- mp2022 %>%
+    group_by(length) %>%
+    summarise(bounce = mean(crease_pos_z))
+
+mpBounce2023 <- mp2023 %>%
+    group_by(length) %>%
+    summarise(bounce = mean(crease_pos_z))
+
+mpBounce2024 <- mp2024 %>%
+    group_by(length) %>%
+    summarise(bounce = mean(crease_pos_z))
+
+ntBounce <- nt %>%
+    group_by(length) %>%
+    summarise(bounce = mean(crease_pos_z))
+
+
+mpIA  <-  mp  %>%
+    group_by(length)  %>%
+    summarise(ia = mean(initial_angle))
+
+mpIA2022 <- mp2022 %>%
+    group_by(length) %>%
+    summarise(ia = mean(initial_angle))
+
+mpIA2023 <- mp2023 %>%
+    group_by(length) %>%
+    summarise(ia = mean(initial_angle))
+
+mpIA2024 <- mp2024 %>%
+    group_by(length) %>%
+    summarise(ia = mean(initial_angle))
+
+cor(mp2024$release_pos_z, mp2024$initial_angle)
+cor(mp2023$release_pos_z, mp2023$initial_angle)
+cor(mp2022$release_pos_z, mp2022$initial_angle)
+cor(nt$release_pos_z, nt$initial_angle)
+
+cor(mp2024$initial_angle, mp2024$crease_pos_z)
+cor(mp2024$initial_angle, mp2024$swing)
+
+mp2024SlowLengths <- mpNT %>%
+    filter(bowler_name == "MATHEESHA PATHIRANA") %>%
+    filter(is_slower == 1) %>%
+    filter(year == "2024") %>%
+    group_by(length) %>%
+    summarise(ia = mean(initial_angle))
+
+mp2024FastLengths <- mpNT %>%
+    filter(bowler_name == "MATHEESHA PATHIRANA") %>%
+    filter(is_slower == 0) %>%
+    filter(year == "2024") %>%
+    group_by(length) %>%
+    summarise(ia = mean(initial_angle))
+
+mp2024Slow  <- mpNT %>%
+    filter(bowler_name == "MATHEESHA PATHIRANA") %>%
+    filter(is_slower == 1) %>%
+    filter(year == "2024")
+
+mp2024Fast <- mpNT %>%
+    filter(bowler_name == "MATHEESHA PATHIRANA") %>%
+    filter(is_slower == 0) %>%
+    filter(year == "2024")
+cor(mp2024Slow$release_pos_z, mp2024Slow$initial_angle)
+cor(mp2024Fast$release_pos_z, mp2024Fast$initial_angle)
