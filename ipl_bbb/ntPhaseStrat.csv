@@ -1,0 +1,37 @@
+"phase","length","Pace","Slow"
+"Death","Bouncer",2.08333333333333,2.08333333333333
+"Death","Full",6.25,6.25
+"Death","Full toss",4.16666666666667,NA
+"Death","Good length",8.33333333333333,6.25
+"Death","Short",4.16666666666667,10.4166666666667
+"Death","Short of a good length",14.5833333333333,10.4166666666667
+"Death","Slot",10.4166666666667,6.25
+"Death","Yorker",8.33333333333333,NA
+"Early Middle","Full",28.5714285714286,NA
+"Early Middle","Good length",NA,14.2857142857143
+"Early Middle","Short",NA,14.2857142857143
+"Early Middle","Slot",14.2857142857143,14.2857142857143
+"Early Middle","Yorker",14.2857142857143,NA
+"Late Middle","Bouncer",NA,8
+"Late Middle","Full",NA,4
+"Late Middle","Good length",12,12
+"Late Middle","Short",NA,12
+"Late Middle","Short of a good length",4,8
+"Late Middle","Slot",8,NA
+"Late Middle","Yorker",32,NA
+"PP1","Bouncer",1.44927536231884,1.44927536231884
+"PP1","Full",2.89855072463768,2.89855072463768
+"PP1","Full toss",1.44927536231884,NA
+"PP1","Good length",30.4347826086957,5.79710144927536
+"PP1","Short",5.79710144927536,NA
+"PP1","Short of a good length",21.7391304347826,2.89855072463768
+"PP1","Slot",14.4927536231884,NA
+"PP1","Yorker",8.69565217391304,NA
+"PP2","Bouncer",NA,8.33333333333333
+"PP2","Full",8.33333333333333,NA
+"PP2","Full toss",8.33333333333333,NA
+"PP2","Good length",8.33333333333333,NA
+"PP2","Short",8.33333333333333,NA
+"PP2","Short of a good length",16.6666666666667,16.6666666666667
+"PP2","Slot",16.6666666666667,NA
+"PP2","Yorker",8.33333333333333,NA
